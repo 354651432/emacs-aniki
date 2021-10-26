@@ -14,6 +14,7 @@
 (delete-selection-mode 1)
 (load-theme 'tango-dark)
 (fset 'yes-or-no-p 'y-or-n-p)
+(hl-line-mode 1)
 
 (dolist (mode '(org-mode-hook
                 term-mode-hook
@@ -201,3 +202,8 @@
   :mode "\\.pac\\'")
 
 (use-package fzf)
+
+(use-package qml-mode
+  :mode "\\.qml\\'")
+
+(use-package cmake-mode)
