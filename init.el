@@ -12,7 +12,7 @@
 (column-number-mode 1)
 (global-display-line-numbers-mode t)
 (delete-selection-mode 1)
-(load-theme 'tango-dark)
+;; (load-theme 'tango-dark)
 (fset 'yes-or-no-p 'y-or-n-p)
 (hl-line-mode 1)
 
@@ -24,7 +24,7 @@
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (set-face-attribute 'default nil :height 150 :font "monaco")
-(setq-default default-text-properties '(line-spacing 0.2 line-height 1.2))
+(setq-default default-text-properties '(line-spacing 0.2 line-height 1.1))
 
 (defadvice term-handle-exit
     (after term-kill-on-exit activate)
@@ -78,8 +78,9 @@
          :map ivy-switch-buffer-map
          ("C-d" . ivy-switch-buffer-kill)
          :map ivy-reverse-i-search-map
-          ("C-d" . ivy-reverse-i-search-kill))
+         ("C-d" . ivy-reverse-i-search-kill))
   :config
+  (setq ivy-initial-inputs-alist nil)
   (ivy-mode 1))
 
 (use-package ivy-rich
@@ -135,14 +136,15 @@
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
-  :hook (lsp-mode . efs/lsp-mode-setup)
   :init
   (setq lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
   :config
-  (lsp-enable-which-key-integration t))
+  (lsp-enable-which-key-integration t)
+  :custom
+  (lsp-lens-enble nil))
 
 (use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
+;;  :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-position 'bottom))
 
@@ -164,6 +166,7 @@
   :custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map)
+  :bind (:map projectile-command-map ("a" . projectile-add-known-project))
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/code")
@@ -207,3 +210,43 @@
   :mode "\\.qml\\'")
 
 (use-package cmake-mode)
+
+(use-package emmet-mode
+  :mode ("\\.html\\'" "\\.js\\'"))
+
+(defun rust-run()
+  (interactive)
+  (compile "cargo run"))
+
+(use-package rust-mode
+  :mode "\\.rs\\'"
+  :hook (rust-mode . lsp-deferred)
+  :bind (:map rust-mode-map
+			  ("C-c C-c" . 'rust-run)))
+
+(defun go-run()
+  (interactive)
+  (compile (format "go run %s" (buffer-file-name))))
+
+(use-package go-mode
+  :custom (tab-width 4)
+  :hook (go-mode . lsp-deferred)
+  :bind (:map go-mode-map
+			  ("C-c C-c" . go-run)))
+
+(defun run-java()
+  (interactive)
+  (compile (format "java %s" (buffer-file-name))))
+
+(use-package cc-mode
+  :bind (:map java-mode-map
+			   ("C-c C-c" . run-java)))
+
+(use-package server
+  :custom (server-name "aniki")
+  :config (server-start))
+
+(use-package aniki
+  :load-path user-emacs-directory
+  :bind-keymap ("C-t" . aniki-map)
+  :bind ("C-w" . 'aniki-ctrl-w) )
