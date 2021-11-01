@@ -126,6 +126,7 @@
   :pin org
   :commands (org-capture org-agenda)
   :hook (org-mode . efs/org-mode-setup)
+  :custom (org-image-actual-width nil)
   :config
   (setq org-ellipsis " ▾"))
 
@@ -250,3 +251,16 @@
   :load-path user-emacs-directory
   :bind-keymap ("C-t" . aniki-map)
   :bind ("C-w" . 'aniki-ctrl-w) )
+
+(defmacro mk-run(name format)
+  `(defun ,name()
+	 (interactive)
+	 (compile (format ,format (buffer-file-name)))))
+
+(mk-run run-groovy "groovy %s")
+(use-package groovy-mode
+  :mode "\\.gradle\\'"
+  :bind ("C-c C-c" . 'run-groovy))
+
+(use-package gradle-mode
+  :mode "\\.gradle\\'")
