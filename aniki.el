@@ -19,6 +19,8 @@
 (defvar aniki-map
   (let ((map (make-sparse-keymap)))
 	(define-key map "t" '("shell trans" . aniki-trans))
+	(define-key map "f" 'fzf)
+	(define-key map "r" 'revert-buffer)
 	map))
 
 (provide 'aniki)

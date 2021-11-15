@@ -98,7 +98,6 @@
   (counsel-mode 1))
 
 (use-package ivy-prescient
-  :after counsel
   :custom
   (ivy-prescient-enable-filtering nil)
   :config
@@ -120,13 +119,18 @@
 (defun efs/org-mode-setup ()
   (org-indent-mode)
   (variable-pitch-mode -1)
-  (visual-line-mode 1))
+  (visual-line-mode 1)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((groovy . t))))
 
 (use-package org
   :pin org
   :commands (org-capture org-agenda)
   :hook (org-mode . efs/org-mode-setup)
-  :custom (org-image-actual-width nil)
+  :custom
+  (org-image-actual-width nil)
+  (org-confirm-babel-evaluate nil)
   :config
   (setq org-ellipsis " ▾"))
 
@@ -136,18 +140,23 @@
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (use-package lsp-mode
-  :commands (lsp lsp-deferred)
+  :commands (lsp)
   :init
+   (setq-default lsp-groovy-classpath 
+	[
+	 "/usr/local/opt/groovy/libexec/lib"
+	 "/home/aniki/.m2/repository/org/springframework/boot/spring-boot-starter/2.3.1.RELEASE/spring-boot-starter-2.3.1.RELEASE.jar"
+	 ])
   (setq lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
   :config
   (lsp-enable-which-key-integration t)
   :custom
   (lsp-lens-enble nil))
 
-(use-package lsp-ui
-;;  :hook (lsp-mode . lsp-ui-mode)
-  :custom
-  (lsp-ui-doc-position 'bottom))
+;; (use-package lsp-ui
+;; ;;  :hook (lsp-mode . lsp-ui-mode)
+;;   :custom
+;;   (lsp-ui-doc-position 'bottom))
 
 (use-package company
     :bind (:map company-active-map
@@ -192,12 +201,20 @@
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
+(defun indent-between-pair (&rest _ignored)
+  (newline)
+  (indent-according-to-mode)
+  (forward-line -1)
+  (indent-according-to-mode))
 (use-package smartparens
   :init (smartparens-global-mode 1)
   :config
   (dolist (mode (list 'emacs-lisp-mode 'lisp-mode 'lisp-interaction-mode))
-	  (sp-local-pair mode "'" nil :actions nil)
-	  (sp-local-pair mode "`" nil :actions nil)))
+	(sp-local-pair mode "'" nil :actions nil)
+	(sp-local-pair mode "`" nil :actions nil))
+  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET"))))
 
 (use-package set-bookmarks
   :load-path user-emacs-directory)
@@ -229,11 +246,15 @@
   (interactive)
   (compile (format "go run %s" (buffer-file-name))))
 
+(defmacro run!(format)
+  `(lambda()
+	 (interactive)
+	 (compile (format ,format (buffer-file-name)))))
+
 (use-package go-mode
   :custom (tab-width 4)
   :hook (go-mode . lsp-deferred)
-  :bind (:map go-mode-map
-			  ("C-c C-c" . go-run)))
+  :config (bind-key "C-c C-c" (run! "go run %s") go-mode-map))
 
 (defun run-java()
   (interactive)
@@ -245,9 +266,10 @@
 
 (use-package server
   :custom (server-name "aniki")
-  :config (server-start))
+  :config (unless (server-running-p) (server-start)))
 
 (use-package aniki
+  :commands (aniki-ctrl-w)
   :load-path user-emacs-directory
   :bind-keymap ("C-t" . aniki-map)
   :bind ("C-w" . 'aniki-ctrl-w) )
@@ -258,9 +280,13 @@
 	 (compile (format ,format (buffer-file-name)))))
 
 (mk-run run-groovy "groovy %s")
-(use-package groovy-mode
-  :mode "\\.gradle\\'"
-  :bind ("C-c C-c" . 'run-groovy))
 
-(use-package gradle-mode
-  :mode "\\.gradle\\'")
+(use-package groovy-mode
+  :mode ("\\.gradle\\'" "\\.groovy\\'")
+  :bind (:map groovy-mode-map
+			  ("C-c C-c" . 'run-groovy)))
+
+(use-package gradle-mode)
+
+(use-package lsp-java
+ :config (add-hook 'java-mode-hook 'lsp))
