@@ -3,6 +3,8 @@
       backup-inhibited t
       auto-save-default nil
       tab-width 4
+	  dired-kill-when-opening-new-dired-buffer t
+	  use-short-answers t
       custom-file "~/.emacs.aniki/custom.el")
 
 (load custom-file t)
@@ -13,7 +15,6 @@
 (global-display-line-numbers-mode t)
 (delete-selection-mode 1)
 ;; (load-theme 'tango-dark)
-(fset 'yes-or-no-p 'y-or-n-p)
 (hl-line-mode 1)
 
 (dolist (mode '(org-mode-hook
@@ -151,7 +152,11 @@
   :config
   (lsp-enable-which-key-integration t)
   :custom
-  (lsp-lens-enble nil))
+  (lsp-lens-enble nil)
+  (lsp-ui-doc-show-with-cursor nil)
+  (lsp-ui-doc-show-with-mouse nil)
+  :bind (:map lsp-mode-map
+		 ("C-c C-j" . 'lsp-ui-doc-show)))
 
 ;; (use-package lsp-ui
 ;; ;;  :hook (lsp-mode . lsp-ui-mode)
@@ -170,18 +175,20 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
-(use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :bind (:map projectile-command-map ("a" . projectile-add-known-project))
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
-  (setq projectile-switch-project-action #'projectile-dired))
+;; (use-package projectile
+;;   :diminish projectile-mode
+;;   :config (projectile-mode)
+;;   :custom ((projectile-completion-system 'ivy)
+;; 		   (projectile-globally-ignored-file-suffixes "class")
+;; 		   (projectile-indexing-method 'hybrid))
+;;   :bind-keymap
+;;   ("C-c p" . projectile-command-map)
+;;   :bind (:map project-prefix-map ("a" . projectile-add-known-project))
+;;   :init
+;;   ;; NOTE: Set this to the folder where you keep your Git repos!
+;;   (when (file-directory-p "~/code")
+;;     (setq projectile-project-search-path '("~/code")))
+;;   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package magit
   :commands magit-status)
@@ -193,7 +200,11 @@
   :ensure nil
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first")))
+  :hook (dired-mode . dired-omit-mode)
+  :custom
+  (dired-omit-mode t)
+  (dired-omit-files "^\\.")
+  (dired-listing-switches "-lah"))
 
 (use-package dired-single
   :commands (dired dired-jump))
@@ -269,10 +280,12 @@
   :config (unless (server-running-p) (server-start)))
 
 (use-package aniki
-  :commands (aniki-ctrl-w)
+  :commands (aniki-ctrl-w dired-current)
   :load-path user-emacs-directory
   :bind-keymap ("C-t" . aniki-map)
-  :bind ("C-w" . 'aniki-ctrl-w) )
+  :bind
+  ("C-w" . 'aniki-ctrl-w)
+  ("C-x C-d" . 'dired-current))
 
 (defmacro mk-run(name format)
   `(defun ,name()
@@ -289,4 +302,21 @@
 (use-package gradle-mode)
 
 (use-package lsp-java
- :config (add-hook 'java-mode-hook 'lsp))
+  :config
+  (add-hook 'java-mode-hook 'lsp)
+  (add-hook 'java-mode-hook 'lsp-ui-mode))
+
+(use-package yaml-mode
+  :hook (yaml-mode . whitespace-mode))
+
+(use-package mhtml-mode
+  :mode "\\.html\\'"
+  :hook (mhtml-mode . emmet-mode))
+
+(use-package java-snippets)
+
+(use-package yasnippet
+  :config (yas-global-mode))
+
+(global-set-key (kbd "M-j") 'scroll-up-line)
+(global-set-key (kbd "M-S-j") 'scroll-down-line)

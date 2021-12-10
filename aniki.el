@@ -21,6 +21,16 @@
 	(define-key map "t" '("shell trans" . aniki-trans))
 	(define-key map "f" 'fzf)
 	(define-key map "r" 'revert-buffer)
+	(define-key map "o" 'find-org)
 	map))
+
+(defun find-org()
+  (interactive)
+  (let ((default-directory "~/org/"))
+	(call-interactively 'find-file)))
+
+(defun dired-current()
+  (interactive)
+  (dired default-directory))
 
 (provide 'aniki)
