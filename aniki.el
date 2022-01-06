@@ -22,6 +22,7 @@
 	(define-key map "f" 'fzf)
 	(define-key map "r" 'revert-buffer)
 	(define-key map "o" 'find-org)
+	(define-key map "c" 'org-roam-capture)
 	map))
 
 (defun find-org()

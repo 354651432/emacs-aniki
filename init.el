@@ -320,3 +320,7 @@
 
 (global-set-key (kbd "M-j") 'scroll-up-line)
 (global-set-key (kbd "M-S-j") 'scroll-down-line)
+
+(use-package org-roam
+  :custom (org-roam-directory "~/org/roam")
+  :config (org-roam-db-autosync-mode))
