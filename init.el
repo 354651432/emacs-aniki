@@ -15,7 +15,7 @@
 (global-display-line-numbers-mode t)
 (delete-selection-mode 1)
 ;; (load-theme 'tango-dark)
-(hl-line-mode 1)
+(global-hl-line-mode 1)
 
 (dolist (mode '(org-mode-hook
                 term-mode-hook
@@ -75,8 +75,7 @@
 
 (use-package ivy
   :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-switch-buffer-map
+  :bind (:map ivy-switch-buffer-map
          ("C-d" . ivy-switch-buffer-kill)
          :map ivy-reverse-i-search-map
          ("C-d" . ivy-reverse-i-search-kill))
@@ -90,7 +89,8 @@
   (ivy-rich-mode 1))
 
 (use-package counsel
-  :bind (("C-M-j" . 'counsel-switch-buffer)
+  :bind (
+		 ("C-M-j" . 'counsel-switch-buffer)
          :map minibuffer-local-map
          ("C-r" . 'counsel-minibuffer-history))
   :custom
@@ -119,7 +119,7 @@
 
 (defun efs/org-mode-setup ()
   (org-indent-mode)
-  (variable-pitch-mode -1)
+  ;; (variable-pitch-mode -1)
   (visual-line-mode 1)
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -132,8 +132,14 @@
   :custom
   (org-image-actual-width nil)
   (org-confirm-babel-evaluate nil)
+  (org-agenda-files '("~/org/" "~/org/roam/"))
+  (org-todo-keywords '((sequence "TODO(t)" "DOING(d)" "|" "KILLED(k)" "DONE(e)")))
+  (org-default-notes-file "~/org/notes.org")
   :config
-  (setq org-ellipsis " ▾"))
+  (setq org-ellipsis " ▾")
+  :bind (:map org-mode-map
+			  ("M-." . 'org-open-at-point)
+			  ("M-," . 'org-mark-ring-goto)) )
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -285,7 +291,12 @@
   :bind-keymap ("C-t" . aniki-map)
   :bind
   ("C-w" . 'aniki-ctrl-w)
-  ("C-x C-d" . 'dired-current))
+  ("C-x C-d" . 'dired-current)
+  :config
+  (font-lock-add-keywords
+   'org-mode
+   '(("^\\([[:space:]]*[+*-][[:space:]]\\|^[[:space:]]*[[:digit:]]\.[[:space:]]\\)" 1 'aniki-org-list))
+   'prepend))
 
 (defmacro mk-run(name format)
   `(defun ,name()
@@ -324,3 +335,13 @@
 (use-package org-roam
   :custom (org-roam-directory "~/org/roam")
   :config (org-roam-db-autosync-mode))
+
+(use-package notebook
+  :init
+  (use-package svg-tag-mode)
+  :load-path "/home/aniki/code/notebook-mode")
+
+;; (use-package nano-theme
+;;   :load-path "/home/aniki/code/nano-theme"
+;;   :config
+;;   (load-theme 'nano-light t))
